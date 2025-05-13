@@ -2,7 +2,7 @@
 // Database configuration
 $host = 'localhost';
 $username = 'root';
-$password = '';
+$password = ''; // This needs to be updated with the correct password for your MySQL server
 $database = 'shop';
 
 // Base URL
@@ -18,16 +18,20 @@ function connectDB() {
     static $conn = null;
     
     if ($conn === null) {
-        // Create connection
-        $conn = new mysqli($host, $username, $password, $database);
-        
-        // Check connection
-        if ($conn->connect_error) {
-            die("Connection failed: " . $conn->connect_error);
+        try {
+            // Create connection
+            $conn = new mysqli($host, $username, $password, $database);
+            
+            // Check connection
+            if ($conn->connect_error) {
+                die("Connection failed: " . $conn->connect_error);
+            }
+            
+            // Set charset to prevent SQL injection
+            $conn->set_charset("utf8");
+        } catch (Exception $e) {
+            die("Connection error: " . $e->getMessage());
         }
-        
-        // Set charset to prevent SQL injection
-        $conn->set_charset("utf8");
     }
     
     return $conn;

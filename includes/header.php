@@ -234,6 +234,111 @@ require_once 'db.php';
             }
         }
         
+        /* Notification System */
+        .notification-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+        
+        .notification {
+            display: flex;
+            align-items: center;
+            background-color: white;
+            color: #333;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+            padding: 15px 20px;
+            margin-bottom: 10px;
+            max-width: 350px;
+            transform: translateX(400px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        
+        .notification .icon {
+            margin-right: 15px;
+            font-size: 20px;
+        }
+        
+        .notification.success {
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .notification.success .icon {
+            color: #4CAF50;
+        }
+        
+        .notification.error {
+            border-left: 4px solid #F44336;
+        }
+        
+        .notification.error .icon {
+            color: #F44336;
+        }
+        
+        .notification.info {
+            border-left: 4px solid #2196F3;
+        }
+        
+        .notification.info .icon {
+            color: #2196F3;
+        }
+        
+        .notification.warning {
+            border-left: 4px solid #FF9800;
+        }
+        
+        .notification.warning .icon {
+            color: #FF9800;
+        }
+        
+        .notification .content {
+            flex: 1;
+        }
+        
+        .notification .title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .notification .message {
+            font-size: 14px;
+            color: #555;
+        }
+        
+        .notification .close {
+            background: none;
+            border: none;
+            color: #999;
+            font-size: 16px;
+            cursor: pointer;
+            margin-left: 10px;
+            padding: 0;
+            line-height: 1;
+        }
+        
+        .notification .close:hover {
+            color: #555;
+        }
+        
+        @media (max-width: 480px) {
+            .notification-container {
+                left: 20px;
+                right: 20px;
+            }
+            
+            .notification {
+                max-width: none;
+            }
+        }
+        
         <?php if (isset($extraCSS) && is_array($extraCSS)): ?>
             <?php foreach($extraCSS as $cssFile): ?>
                 <?php include_once "assets/css/{$cssFile}.css"; ?>

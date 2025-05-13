@@ -1,5 +1,124 @@
     </main>
     <footer>
+        <style>
+            footer {
+                background-color: #222;
+                color: #f8f8f8;
+                padding: 40px 0 0;
+                margin-top: 50px;
+            }
+            
+            .footer-content {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 30px;
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 0 20px;
+            }
+            
+            .footer-section h3 {
+                color: #fff;
+                font-size: 18px;
+                margin-bottom: 15px;
+                position: relative;
+                padding-bottom: 10px;
+            }
+            
+            .footer-section h3::after {
+                content: '';
+                position: absolute;
+                left: 0;
+                bottom: 0;
+                width: 50px;
+                height: 2px;
+                background-color: #ffcc00;
+            }
+            
+            .footer-section p {
+                color: #b3b3b3;
+                line-height: 1.6;
+                margin-bottom: 15px;
+            }
+            
+            .socialicons1 {
+                display: flex;
+                gap: 15px;
+                margin-top: 20px;
+            }
+            
+            .socialicons1 a {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                width: 36px;
+                height: 36px;
+                background-color: rgba(255, 255, 255, 0.1);
+                border-radius: 50%;
+                color: #fff;
+                transition: all 0.3s ease;
+            }
+            
+            .socialicons1 a:hover {
+                background-color: #ffcc00;
+                color: #222;
+                transform: translateY(-3px);
+            }
+            
+            .footer-section ul {
+                list-style: none;
+                padding: 0;
+            }
+            
+            .footer-section ul li {
+                margin-bottom: 10px;
+            }
+            
+            .footer-section ul li a {
+                color: #b3b3b3;
+                transition: all 0.3s ease;
+                display: block;
+                padding: 5px 0;
+            }
+            
+            .footer-section ul li a:hover {
+                color: #ffcc00;
+                transform: translateX(5px);
+            }
+            
+            .footer-section.contact i {
+                margin-right: 10px;
+                color: #ffcc00;
+            }
+            
+            .footer-bottom {
+                background-color: #111;
+                text-align: center;
+                padding: 15px 0;
+                margin-top: 40px;
+                font-size: 14px;
+            }
+            
+            @media (max-width: 768px) {
+                .footer-content {
+                    grid-template-columns: 1fr;
+                    text-align: center;
+                }
+                
+                .footer-section h3::after {
+                    left: 50%;
+                    transform: translateX(-50%);
+                }
+                
+                .socialicons1 {
+                    justify-content: center;
+                }
+                
+                .footer-section ul li a:hover {
+                    transform: none;
+                }
+            }
+        </style>
         <div class="footer-content">
             <div class="footer-section about">
                 <h3>About Shopway</h3>
@@ -33,6 +152,9 @@
             &copy; <?php echo date('Y'); ?> Shopway | All rights reserved
         </div>
     </footer>
+    
+    <!-- Notification Container -->
+    <div class="notification-container"></div>
     
     <?php if (isset($extraJS) && is_array($extraJS)): ?>
     <script>
@@ -223,27 +345,102 @@
             xhr.send(`product_id=${productId}&quantity=${quantity}`);
         }
 
-        // Notification helper
-        function showNotification(message, type = 'info') {
+        // Enhanced Notification System
+        function showNotification(message, type = 'info', title = '', duration = 5000) {
+            const container = document.querySelector('.notification-container');
+            
+            // Create notification element
             const notification = document.createElement('div');
             notification.className = `notification ${type}`;
-            notification.textContent = message;
             
-            document.body.appendChild(notification);
+            // Set icon based on type
+            let icon = '';
+            switch(type) {
+                case 'success':
+                    icon = 'check-circle';
+                    if (!title) title = 'Success';
+                    break;
+                case 'error':
+                    icon = 'exclamation-circle';
+                    if (!title) title = 'Error';
+                    break;
+                case 'warning':
+                    icon = 'exclamation-triangle';
+                    if (!title) title = 'Warning';
+                    break;
+                default:
+                    icon = 'info-circle';
+                    if (!title) title = 'Information';
+                    break;
+            }
+            
+            // Build notification HTML
+            notification.innerHTML = `
+                <i class="icon fas fa-${icon}"></i>
+                <div class="content">
+                    <div class="title">${title}</div>
+                    <div class="message">${message}</div>
+                </div>
+                <button class="close"><i class="fas fa-times"></i></button>
+            `;
+            
+            // Add to container
+            container.appendChild(notification);
+            
+            // Add close button event
+            const closeBtn = notification.querySelector('.close');
+            closeBtn.addEventListener('click', () => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    container.removeChild(notification);
+                }, 300);
+            });
             
             // Show with animation
             setTimeout(() => {
                 notification.classList.add('show');
             }, 10);
             
-            // Hide after 3 seconds
-            setTimeout(() => {
-                notification.classList.remove('show');
+            // Auto remove after duration
+            if (duration > 0) {
                 setTimeout(() => {
-                    document.body.removeChild(notification);
-                }, 300);
-            }, 3000);
+                    if (notification.parentNode === container) {
+                        notification.classList.remove('show');
+                        setTimeout(() => {
+                            if (notification.parentNode === container) {
+                                container.removeChild(notification);
+                            }
+                        }, 300);
+                    }
+                }, duration);
+            }
+            
+            return notification;
         }
+        
+        // Process session messages if they exist
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for PHP set session messages and convert them to notifications
+            <?php if (isset($_SESSION['success_message'])): ?>
+                showNotification('<?php echo addslashes($_SESSION['success_message']); ?>', 'success');
+                <?php unset($_SESSION['success_message']); ?>
+            <?php endif; ?>
+            
+            <?php if (isset($_SESSION['error_message'])): ?>
+                showNotification('<?php echo addslashes($_SESSION['error_message']); ?>', 'error');
+                <?php unset($_SESSION['error_message']); ?>
+            <?php endif; ?>
+            
+            <?php if (isset($_SESSION['info_message'])): ?>
+                showNotification('<?php echo addslashes($_SESSION['info_message']); ?>', 'info');
+                <?php unset($_SESSION['info_message']); ?>
+            <?php endif; ?>
+            
+            <?php if (isset($_SESSION['warning_message'])): ?>
+                showNotification('<?php echo addslashes($_SESSION['warning_message']); ?>', 'warning');
+                <?php unset($_SESSION['warning_message']); ?>
+            <?php endif; ?>
+        });
     </script>
 </body>
 </html>
