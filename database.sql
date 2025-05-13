@@ -1,10 +1,6 @@
--- Create database if not exists and select it
 CREATE DATABASE IF NOT EXISTS shop;
 USE shop;
 
--- Database: shop
-
--- Drop tables if they exist to prevent errors (be careful with this in production)
 DROP TABLE IF EXISTS order_items;
 DROP TABLE IF EXISTS orders;
 DROP TABLE IF EXISTS products;
@@ -12,7 +8,6 @@ DROP TABLE IF EXISTS categories;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS sessions;
 
--- Create users table
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     first_name VARCHAR(50) NOT NULL,
@@ -29,7 +24,6 @@ CREATE TABLE users (
     INDEX idx_email (email)
 );
 
--- Create categories table
 CREATE TABLE categories (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -39,7 +33,6 @@ CREATE TABLE categories (
     INDEX idx_category_name (name)
 );
 
--- Create products table
 CREATE TABLE products (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -58,7 +51,6 @@ CREATE TABLE products (
     INDEX idx_product_featured (featured)
 );
 
--- Create orders table
 CREATE TABLE orders (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -75,7 +67,6 @@ CREATE TABLE orders (
     INDEX idx_order_date (order_date)
 );
 
--- Create order items table
 CREATE TABLE order_items (
     id INT AUTO_INCREMENT PRIMARY KEY,
     order_id INT NOT NULL,
@@ -88,7 +79,6 @@ CREATE TABLE order_items (
     INDEX idx_orderitem_product (product_id)
 );
 
--- Create session table for better session management
 CREATE TABLE sessions (
     id VARCHAR(128) NOT NULL PRIMARY KEY,
     user_id INT,
@@ -100,7 +90,6 @@ CREATE TABLE sessions (
     INDEX idx_session_last_activity (last_activity)
 );
 
--- Insert sample categories
 INSERT INTO categories (name, description) VALUES
 ('Electronics', 'Smartphones, laptops, tablets, and other electronic gadgets'),
 ('Fashion', 'Clothing, footwear, and accessories for men and women'),
@@ -109,7 +98,6 @@ INSERT INTO categories (name, description) VALUES
 ('Beauty', 'Cosmetics, skincare, and beauty products'),
 ('Sports', 'Sports equipment, activewear, and fitness gear');
 
--- Insert sample products
 INSERT INTO products (name, description, price, stock, image, category_id, featured) VALUES
 ('iPhone 14 Pro', 'Latest Apple iPhone with amazing features and powerful processor', 54999.00, 20, 'iphone.jpg', 1, 1),
 ('AirPods Pro', 'Wireless earbuds with noise cancellation for immersive sound experience', 12990.00, 50, 'airpods.jpg', 1, 1),
