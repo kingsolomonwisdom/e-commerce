@@ -1,0 +1,192 @@
+/* Authentication Pages Styling */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Arial", sans-serif;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: url('../images/wow.jpg') no-repeat center center;
+    background-size: cover;
+    position: relative;
+}
+
+body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1;
+}
+
+.auth-container {
+    position: relative;
+    z-index: 2;
+    width: 420px;
+    padding: 40px;
+    background: rgba(30, 30, 30, 0.7);
+    backdrop-filter: blur(5px);
+    color: white;
+    border-radius: 10px;
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.6);
+}
+
+.auth-container h1 {
+    font-size: 28px;
+    text-align: center;
+    margin-bottom: 30px;
+    color: yellow;
+}
+
+.inputbox {
+    position: relative;
+    width: 100%;
+    height: 50px;
+    margin: 25px 0;
+}
+
+.inputbox input {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 40px;
+    font-size: 16px;
+    color: white;
+    padding: 20px 45px 20px 20px;
+}
+
+.inputbox input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.inputbox i {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+}
+
+.remember-forget {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 25px;
+    font-size: 14px;
+}
+
+.remember-forget label {
+    display: flex;
+    align-items: center;
+}
+
+.remember-forget label input {
+    margin-right: 5px;
+    accent-color: yellow;
+}
+
+.remember-forget a {
+    color: white;
+    text-decoration: none;
+}
+
+.remember-forget a:hover {
+    text-decoration: underline;
+    color: yellow;
+}
+
+.auth-btn {
+    width: 100%;
+    height: 45px;
+    background: white;
+    border: none;
+    outline: none;
+    border-radius: 40px;
+    cursor: pointer;
+    font-size: 16px;
+    color: #333;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.auth-btn:hover {
+    background-color: yellow;
+}
+
+.register-link, .login-link {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+.register-link a, .login-link a {
+    color: yellow;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.register-link a:hover, .login-link a:hover {
+    text-decoration: underline;
+}
+
+/* Specific to register form */
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.form-row .inputbox {
+    flex: 1;
+}
+
+.form-check {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0;
+}
+
+.form-check label {
+    margin-left: 10px;
+}
+
+/* Error and success messages */
+.message {
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.error {
+    background-color: rgba(220, 53, 69, 0.8);
+    color: white;
+}
+
+.success {
+    background-color: rgba(40, 167, 69, 0.8);
+    color: white;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .auth-container {
+        width: 90%;
+        padding: 30px 20px;
+    }
+    
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+} 
