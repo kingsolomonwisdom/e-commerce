@@ -1,4 +1,7 @@
 <?php
+// Start output buffering to prevent "headers already sent" errors
+ob_start();
+
 // Database configuration
 $host = 'localhost';
 $username = 'root';

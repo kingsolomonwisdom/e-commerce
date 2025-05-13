@@ -9,86 +9,112 @@ $response = [
     'cartCount' => 0
 ];
 
-// Check if request is AJAX
-$isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
-          strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
+// Ensure we're properly buffering output to prevent any headers issues
+ob_start();
 
-// Initialize cart if not exists
-if (!isset($_SESSION['cart'])) {
-    $_SESSION['cart'] = [];
-}
+// Debug mode - set to false in production
+$debug = false;
 
-// Process add to cart request
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $productId = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
-    $quantity = isset($_POST['quantity']) ? (int)$_POST['quantity'] : 1;
-    
-    // Validate input
-    if ($productId <= 0) {
-        $response['message'] = 'Invalid product ID';
-    } elseif ($quantity <= 0) {
-        $response['message'] = 'Quantity must be greater than zero';
-    } else {
-        // Get product from database
-        $product = fetchRow("SELECT * FROM products WHERE id = ?", [$productId]);
+try {
+    // Check if request is AJAX
+    $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+              strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
+
+    // Initialize cart if not exists
+    if (!isset($_SESSION['cart'])) {
+        $_SESSION['cart'] = [];
+    }
+
+    // Process add to cart request
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $productId = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
+        $quantity = isset($_POST['quantity']) ? (int)$_POST['quantity'] : 1;
         
-        if (!$product) {
-            $response['message'] = 'Product not found';
+        // Validate input
+        if ($productId <= 0) {
+            $response['message'] = 'Invalid product ID';
+        } elseif ($quantity <= 0) {
+            $response['message'] = 'Quantity must be greater than zero';
         } else {
-            // Check stock (if tracking stock)
-            if (isset($product['stock']) && $product['stock'] !== null) {
-                // Get current quantity in cart
-                $currentQty = 0;
-                if (isset($_SESSION['cart'][$productId])) {
-                    $currentQty = $_SESSION['cart'][$productId]['quantity'];
-                }
-                
-                // Calculate new total quantity
-                $newTotalQty = $currentQty + $quantity;
-                
-                // Check if we have enough stock
-                if ($newTotalQty > $product['stock']) {
-                    $response['message'] = 'Not enough stock available. Only ' . $product['stock'] . ' item(s) left.';
-                    
-                    // If we already have items in cart and trying to add more
-                    if ($currentQty > 0) {
-                        $response['message'] .= ' You already have ' . $currentQty . ' in your cart.';
-                    }
-                    
-                    // Output response and exit
-                    if ($isAjax) {
-                        header('Content-Type: application/json');
-                        echo json_encode($response);
-                    } else {
-                        $_SESSION['error_message'] = $response['message'];
-                        header("Location: product.php?id=$productId");
-                    }
-                    exit;
-                }
-            }
+            // Get product from database
+            $product = fetchRow("SELECT * FROM products WHERE id = ?", [$productId]);
             
-            // Add product to cart
-            if (isset($_SESSION['cart'][$productId])) {
-                // Product already in cart, update quantity
-                $_SESSION['cart'][$productId]['quantity'] += $quantity;
+            if (!$product) {
+                $response['message'] = 'Product not found';
             } else {
-                // New product, add to cart
-                $_SESSION['cart'][$productId] = [
-                    'id' => $productId,
-                    'name' => $product['name'],
-                    'price' => $product['price'],
-                    'image' => $product['image'],
-                    'quantity' => $quantity
-                ];
+                // Check stock (if tracking stock)
+                if (isset($product['stock']) && $product['stock'] !== null) {
+                    // Get current quantity in cart
+                    $currentQty = 0;
+                    if (isset($_SESSION['cart'][$productId])) {
+                        $currentQty = $_SESSION['cart'][$productId]['quantity'];
+                    }
+                    
+                    // Calculate new total quantity
+                    $newTotalQty = $currentQty + $quantity;
+                    
+                    // Check if we have enough stock
+                    if ($newTotalQty > $product['stock']) {
+                        $response['message'] = 'Not enough stock available. Only ' . $product['stock'] . ' item(s) left.';
+                        
+                        // If we already have items in cart and trying to add more
+                        if ($currentQty > 0) {
+                            $response['message'] .= ' You already have ' . $currentQty . ' in your cart.';
+                        }
+                        
+                        // Output response and exit
+                        if ($isAjax) {
+                            header('Content-Type: application/json');
+                            echo json_encode($response);
+                        } else {
+                            $_SESSION['error_message'] = $response['message'];
+                            header("Location: product.php?id=$productId");
+                        }
+                        exit;
+                    }
+                }
+                
+                // Add product to cart
+                if (isset($_SESSION['cart'][$productId])) {
+                    // Product already in cart, update quantity
+                    $_SESSION['cart'][$productId]['quantity'] += $quantity;
+                } else {
+                    // New product, add to cart
+                    $_SESSION['cart'][$productId] = [
+                        'id' => $productId,
+                        'name' => $product['name'],
+                        'price' => $product['price'],
+                        'image' => $product['image'],
+                        'quantity' => $quantity
+                    ];
+                }
+                
+                // Success response
+                $response['success'] = true;
+                $response['message'] = 'Product added to cart successfully!';
+                $response['cartCount'] = count($_SESSION['cart']);
             }
-            
-            // Success response
-            $response['success'] = true;
-            $response['message'] = 'Product added to cart successfully!';
-            $response['cartCount'] = count($_SESSION['cart']);
         }
+    } else {
+        $response['message'] = 'Invalid request method';
+    }
+} catch (Exception $e) {
+    // Log the error (in a production environment)
+    // error_log('Add to cart error: ' . $e->getMessage());
+    
+    $response['message'] = 'An error occurred while processing your request';
+    
+    // Add debug info if debug mode is on
+    if ($debug) {
+        $response['debug'] = [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ];
     }
 }
+
+// Clean any output buffer before sending response
+ob_end_clean();
 
 // Send response
 if ($isAjax) {

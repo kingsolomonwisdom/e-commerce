@@ -315,6 +315,9 @@
 
         // Ajax add to cart functionality (if supported)
         function addToCart(productId, quantity = 1) {
+            // Show loading state
+            showNotification('Adding to cart...', 'info', '', 2000);
+            
             const xhr = new XMLHttpRequest();
             xhr.open('POST', 'add_to_cart.php', true);
             xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
@@ -337,9 +340,16 @@
                             showNotification(response.message || 'Failed to add product to cart', 'error');
                         }
                     } catch (e) {
-                        showNotification('Something went wrong', 'error');
+                        console.error('Error parsing response:', e, this.responseText);
+                        showNotification('Something went wrong. Please try again.', 'error');
                     }
+                } else {
+                    showNotification('Server error. Please try again later.', 'error');
                 }
+            };
+            
+            xhr.onerror = function() {
+                showNotification('Network error. Please check your connection.', 'error');
             };
             
             xhr.send(`product_id=${productId}&quantity=${quantity}`);
