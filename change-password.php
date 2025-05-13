@@ -19,9 +19,9 @@ $error = '';
 
 // Process form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $currentPassword = $_POST['current_password'] ?? '';
-    $newPassword = $_POST['new_password'] ?? '';
-    $confirmPassword = $_POST['confirm_password'] ?? '';
+    $currentPassword = isset($_POST['current_password']) ? trim($_POST['current_password']) : '';
+    $newPassword = isset($_POST['new_password']) ? trim($_POST['new_password']) : '';
+    $confirmPassword = isset($_POST['confirm_password']) ? trim($_POST['confirm_password']) : '';
     
     // Validate form data
     if (empty($currentPassword) || empty($newPassword) || empty($confirmPassword)) {
@@ -47,17 +47,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $sql = "UPDATE users SET password = ?, updated_at = NOW() WHERE id = ?";
             $params = [$hashedPassword, $_SESSION['user_id']];
             
-            $affected = modifyData($sql, $params);
-            
-            if ($affected) {
-                // Set success message for account page
-                $_SESSION['success_message'] = "Your password has been changed successfully.";
+            try {
+                $affected = modifyData($sql, $params);
                 
-                // Redirect to account page
-                header("Location: account.php");
-                exit;
-            } else {
-                $error = "Failed to update password. Please try again.";
+                if ($affected) {
+                    // Set success message for account page
+                    $_SESSION['success_message'] = "Your password has been changed successfully.";
+                    
+                    // Show success on this page too
+                    $success = "Your password has been changed successfully.";
+                    
+                    // Don't redirect immediately - allow success message to be seen
+                    // header("Location: account.php");
+                    // exit;
+                } else {
+                    $error = "No changes were made. Please try a different password.";
+                }
+            } catch (Exception $e) {
+                $error = "Failed to update password: " . $e->getMessage();
             }
         }
     }

@@ -28,10 +28,16 @@ function connectDB() {
             // Check if database exists, create it if it doesn't
             if (!databaseExists($conn, $database)) {
                 $conn->query("CREATE DATABASE IF NOT EXISTS $database");
+                
+                // Select the newly created database
+                $conn->select_db($database);
+                
+                // Create all necessary tables
+                initializeDatabase($conn);
+            } else {
+                // Select the existing database
+                $conn->select_db($database);
             }
-            
-            // Select the database
-            $conn->select_db($database);
             
             // Set charset to prevent SQL injection
             $conn->set_charset("utf8");
@@ -110,51 +116,69 @@ function modifyData($sql, $params = [], $types = "") {
 }
 
 // Initialize database and tables if they don't exist
-function initializeDatabase() {
-    $conn = connectDB();
-    
-    // Check if users table exists
-    $result = $conn->query("SHOW TABLES LIKE 'users'");
-    
-    if ($result->num_rows === 0) {
-        // Create users table
-        $sql = "CREATE TABLE users (
-            id INT AUTO_INCREMENT PRIMARY KEY,
-            first_name VARCHAR(50) NOT NULL,
-            last_name VARCHAR(50) NOT NULL,
-            username VARCHAR(50) NOT NULL UNIQUE,
-            email VARCHAR(100) NOT NULL UNIQUE,
-            phone VARCHAR(15),
-            address TEXT,
-            password VARCHAR(255) NOT NULL,
-            is_admin TINYINT(1) DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            INDEX idx_username (username),
-            INDEX idx_email (email)
-        )";
-        
-        $conn->query($sql);
-        
-        // Insert admin user
-        $adminPassword = password_hash('admin123', PASSWORD_DEFAULT);
-        $sql = "INSERT INTO users (first_name, last_name, username, email, phone, address, password, is_admin) 
-                VALUES ('Admin', 'User', 'admin', 'admin@shopway.com', '1234567890', '123 Admin St', ?, 1)";
-        
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("s", $adminPassword);
-        $stmt->execute();
-        $stmt->close();
-        
-        // Create other essential tables
-        createTable($conn, 'categories');
-        createTable($conn, 'products');
-        createTable($conn, 'orders');
-        createTable($conn, 'order_items');
-        createTable($conn, 'sessions');
+function initializeDatabase($conn = null) {
+    if ($conn === null) {
+        $conn = connectDB();
     }
     
-    return true;
+    try {
+        // Check if users table exists
+        $result = $conn->query("SHOW TABLES LIKE 'users'");
+        
+        if ($result->num_rows === 0) {
+            // Create users table
+            $sql = "CREATE TABLE users (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                first_name VARCHAR(50) NOT NULL,
+                last_name VARCHAR(50) NOT NULL,
+                username VARCHAR(50) NOT NULL UNIQUE,
+                email VARCHAR(100) NOT NULL UNIQUE,
+                phone VARCHAR(15),
+                address TEXT,
+                password VARCHAR(255) NOT NULL,
+                is_admin TINYINT(1) DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                INDEX idx_username (username),
+                INDEX idx_email (email)
+            )";
+            
+            if (!$conn->query($sql)) {
+                throw new Exception("Error creating users table: " . $conn->error);
+            }
+            
+            // Insert admin user
+            $adminPassword = password_hash('admin123', PASSWORD_DEFAULT);
+            $sql = "INSERT INTO users (first_name, last_name, username, email, phone, address, password, is_admin) 
+                    VALUES ('Admin', 'User', 'admin', 'admin@shopway.com', '1234567890', '123 Admin St', ?, 1)";
+            
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("s", $adminPassword);
+            $stmt->execute();
+            $stmt->close();
+            
+            // Create other essential tables
+            createTable($conn, 'categories');
+            createTable($conn, 'products');
+            createTable($conn, 'orders');
+            createTable($conn, 'order_items');
+            createTable($conn, 'sessions');
+            
+            echo "<div style='background-color: #d4edda; color: #155724; padding: 15px; margin: 10px 0; border-radius: 5px;'>
+                <h3>Database Initialized</h3>
+                <p>Database and tables created successfully.</p>
+                <p>Default admin credentials: username: admin, password: admin123</p>
+              </div>";
+        }
+        
+        return true;
+    } catch (Exception $e) {
+        echo "<div style='background-color: #ffdddd; color: #990000; padding: 15px; margin: 10px 0; border-radius: 5px;'>
+            <h3>Database Initialization Error</h3>
+            <p>" . $e->getMessage() . "</p>
+          </div>";
+        return false;
+    }
 }
 
 // Create a specific table if it doesn't exist

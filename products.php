@@ -72,8 +72,23 @@ $query = "SELECT p.*, c.name as category_name
 $params[] = $limit;
 $params[] = $offset;
 
-// Get product list
-$products = fetchResults($query, $params);
+// Get product list with error handling
+try {
+    $products = fetchResults($query, $params);
+    
+    // If no products are found
+    if (empty($products)) {
+        $noProductsMessage = "No products found.";
+        if (!empty($search)) {
+            $noProductsMessage = "No products found matching '$search'.";
+        } elseif ($categoryId > 0) {
+            $noProductsMessage = "No products found in this category.";
+        }
+    }
+} catch (Exception $e) {
+    $errorMessage = "Error loading products: " . $e->getMessage();
+    $products = [];
+}
 
 // Get all categories for filter
 $categories = fetchResults("SELECT * FROM categories ORDER BY name ASC");
@@ -643,7 +658,7 @@ if ($categoryId > 0) {
             <div class="no-products">
                 <i class="fas fa-search fa-3x"></i>
                 <h2>No products found</h2>
-                <p>Try adjusting your search or filter to find what you're looking for.</p>
+                <p><?php echo htmlspecialchars($noProductsMessage); ?></p>
                 <a href="products.php" class="btn-secondary">Clear Filters</a>
             </div>
             <?php else: ?>
