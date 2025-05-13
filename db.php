@@ -2,17 +2,15 @@
 // Database configuration
 $host = 'localhost';
 $username = 'root';
-$password = ''; // This needs to be updated with the correct password for your MySQL server
+$password = ''; // MySQL password - XAMPP default is empty, change if your MySQL has a password
 $database = 'shop';
 
 // Base URL
 define('BASE_URL', 'http://localhost/maoni');
 
-// Error reporting (turn off in production)
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Database connection with error handling
 function connectDB() {
     global $host, $username, $password, $database;
     static $conn = null;
@@ -24,13 +22,21 @@ function connectDB() {
             
             // Check connection
             if ($conn->connect_error) {
-                die("Connection failed: " . $conn->connect_error);
+                throw new Exception("Connection failed: " . $conn->connect_error);
             }
             
             // Set charset to prevent SQL injection
             $conn->set_charset("utf8");
         } catch (Exception $e) {
-            die("Connection error: " . $e->getMessage());
+            // Instead of die, we'll output a user-friendly message and log the error
+            echo "<div style='background-color: #ffdddd; color: #990000; padding: 15px; margin: 10px 0; border-radius: 5px;'>
+                <h3>Database Connection Error</h3>
+                <p>Unable to connect to the database. Please check your configuration or contact the administrator.</p>
+                <p><strong>Error details (for admin only):</strong> " . $e->getMessage() . "</p>
+                <p><strong>Troubleshooting:</strong> If you're seeing 'Access denied', your MySQL password might be incorrect. 
+                Edit the db.php file and update the password.</p>
+              </div>";
+            exit;
         }
     }
     
